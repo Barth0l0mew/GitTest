@@ -1,0 +1,102 @@
+Хорошо, давайте изменим метод загрузки объектов из файла, чтобы он возвращал массив объектов конкретного типа, а не Object[]. Для этого нам нужно будет передавать класс объекта в качестве параметра и использовать приведение типа. Также, для повышения безопасности, мы добавим проверку, что загружаемые объекты соответствуют ожидаемому типу.
+
+Вот измененный класс ObjectSerializer:
+
+import java.io.*;
+import java.util.Arrays;
+
+public class ObjectSerializer {
+
+    public static <T> void saveObjectsToFile(T[] objects, String filePath) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(objects);
+            System.out.println("Объекты успешно сохранены в файл: " + filePath);
+        } catch (IOException e) {
+            System.err.println("Ошибка при сохранении объектов в файл: " + e.getMessage());
+        }
+    }
+     public static <T> T[] loadObjectsFromFile(String filePath, Class<T> objectClass) {
+         T[] objects = null;
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+           Object loadedObject = ois.readObject();
+            if (loadedObject != null && loadedObject.getClass().isArray() ){ //проверяем что объект массив
+                Object[] loadedArray = (Object[]) loadedObject;
+                objects = Arrays.copyOf(loadedArray, loadedArray.length, (Class<T[]>) objectClass); // приводим к массиву нужного класса
+             } else {
+                 System.err.println("Загруженный объект не является массивом.");
+             }
+           System.out.println("Объекты успешно загружены из файла: " + filePath);
+        } catch (FileNotFoundException e) {
+            System.err.println("Файл не найден: " + e.getMessage());
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Ошибка при загрузке объектов из файла: " + e.getMessage());
+        }
+        return objects;
+    }
+    public static void main(String[] args) {
+        // Создание массивов объектов
+        Car[] cars = {
+                new Car("Model S", "Tesla", "Red"),
+                new Car("X5", "BMW", "Black"),
+                new Car("A4", "Audi", "Blue")
+        };
+        Student[] students = {
+                new Student("John Doe", "CS101", "Computer Science"),
+                new Student("Alice Smith", "ENG201", "Engineering"),
+                new Student("Bob Johnson", "BIO101", "Biology")
+        };
+        User[] users = {
+                new User("john123", "john@example.com", "admin"),
+                new User("alice456", "alice@example.com", "user"),
+                new User("bob789", "bob@example.com", "guest")
+        };
+
+        String carFilePath = "cars.bin";
+        String studentFilePath = "students.bin";
+        String userFilePath = "users.bin";
+
+        // Сохранение массивов в файл
+        saveObjectsToFile(cars, carFilePath);
+        saveObjectsToFile(students, studentFilePath);
+        saveObjectsToFile(users, userFilePath);
+
+        // Загрузка массивов из файла
+        Car[] loadedCars = loadObjectsFromFile(carFilePath, Car.class);
+        Student[] loadedStudents = loadObjectsFromFile(studentFilePath, Student.class);
+        User[] loadedUsers = loadObjectsFromFile(userFilePath, User.class);
+
+
+        if (loadedCars != null){
+            System.out.println("\nЗагруженные машины:");
+           Arrays.stream(loadedCars).forEach(System.out::println);
+         }
+         if (loadedStudents != null) {
+           System.out.println("\nЗагруженные студенты:");
+          Arrays.stream(loadedStudents).forEach(System.out::println);
+         }
+         if (loadedUsers != null){
+           System.out.println("\nЗагруженные пользователи:");
+          Arrays.stream(loadedUsers).forEach(System.out::println);
+         }
+    }
+}
+Изменения в коде:
+
+Generic method: Метод loadObjectsFromFile теперь является generic <T>. Это позволяет ему работать с массивами любого типа.
+Метод saveObjectsToFile теперь тоже generic.
+Class<T> objectClass parameter: Мы добавили параметр Class<T> objectClass в метод loadObjectsFromFile. Он указывает, какого типа массив мы ожидаем получить.
+Проверка массива: Теперь метод проверяет, что загружаемый объект является массивом.
+Приведение типа с Arrays.copyOf:
+После загрузки массива из файла, мы используем метод Arrays.copyOf, для приведения массива Object[] к массиву нужного типа T[]. Это безопасно, потому что мы проверяем, что объект является массивом.
+Использование в main:
+Теперь при вызове loadObjectsFromFile нам нужно указать класс объекта, который мы ожидаем загрузить, например loadObjectsFromFile("data.bin", Car.class).
+Каждый массив сохраняется в отдельный файл.
+Объяснение:
+
+Generic Method: Использование generic метода <T> позволяет сделать метод loadObjectsFromFile более универсальным и типобезопасным. Он может работать с массивами любых классов, при условии, что вы передадите правильный objectClass.
+Arrays.copyOf: Это более безопасный способ приведения массива, чем прямое приведение ((T[]) loadedObject). Он создаёт новый массив указанного типа, копируя все элементы из старого массива, что обеспечивает безопасность приведения типов.
+Как использовать:
+
+Сохранение: Используйте saveObjectsToFile так же, как и раньше, но теперь этот метод generic и принимает любой массив.
+Загрузка: Вызывайте loadObjectsFromFile, передавая путь к файлу и Class-объект, представляющий тип массива, который вы ожидаете получить (например, Car.class, Student.class, User.class).
+Теперь метод loadObjectsFromFile возвращает массив нужного типа, что делает код более удобным и читаемым. Этот подход также обеспечивает дополнительную проверку на соответствие типов при загрузке объектов, что делает ваш код более надежным.
