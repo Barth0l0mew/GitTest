@@ -1,0 +1,57 @@
+//import model.Student;
+
+import java.io.*;
+import java.lang.reflect.Array;
+import java.sql.SQLOutput;
+import java.util.Arrays;
+
+public class LoadFileToObject {
+    public static <T> T[] loadObject() {
+        classChecked();
+        String cl = "model.Student";
+
+        T[] objects = null;
+        try (ObjectInputStream ois = new ObjectInputStream( new FileInputStream("data.dat"))) {
+            //Class<?> clazz = Class.forName(cl);
+            //System.out.println(clazz.getName());
+            //model.Student[] object = (model.Student[]) ois.readObject();
+            Object object = ois.readObject();
+       //     Object[] obj = (Object[]) object;
+           // objects = Arrays.copyOf(obj,obj.length, (Class<T[]>) objectClass );
+           objects = (T[]) object;
+           //objects = (T[]) Array.newInstance(clazz,obj.length);
+
+            //System.out.println(object.toString());
+           // System.out.println(Arrays.toString(object));
+            String className = object.getClass().getName();
+            System.out.println("classname "+className);
+            System.out.println(className.substring(className.indexOf("model.")+6));
+
+        } catch (
+                FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            System.out.println("Данный класс отсутствует в директори model");
+            return null;
+            //throw new RuntimeException(e);
+        }
+        return objects;
+    }
+    private static boolean classChecked (){
+        String directoryPath = "src/model";
+        File directory = new File (directoryPath);
+        if (!directory.isDirectory()){
+            System.out.println("Директория не существует");
+            return false;
+        }
+        for (File file : directory.listFiles()) {
+            System.out.println("file name " + file.getName());
+            System.out.println();
+        }
+        return false;
+    }
+
+
+}
