@@ -53,7 +53,7 @@ public class Main {
             System.out.println("Введите пункт");
             System.out.println("1 - загрузка с файла");
             System.out.println("2 - загрузка рандомная");
-            System.out.println("3 - загрузка пользовательсяка");
+            System.out.println("3 - загрузка пользовательская");
             System.out.println("4 - вывод массива");
             System.out.println("0 - выход");
             String input = scanner.nextLine();
